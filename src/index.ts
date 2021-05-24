@@ -9,7 +9,7 @@ client.on('ready', () => {
 });
 
 function parseCommand(content: string): string | undefined {
-  const match = content.match(/\!bc\s(.*$)/)
+  const match = content.match(/^\!bc\s(.*$)/)
   console.log(match)
   if (match) {
     return match[1]
