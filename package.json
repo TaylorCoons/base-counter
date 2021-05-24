@@ -10,7 +10,9 @@
     "flex-parse": "./modules/flex-parse"
   },
   "scripts": {
-    "start": "yarn tsc && node build/src/index.js"
+    "build": "yarn tsc",
+    "start": "node build/src/index.js",
+    "run": "yarn build && yarn start"
   },
   "devDependencies": {
     "@types/discord-rpc": "^3.0.5",
