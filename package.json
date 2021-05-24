@@ -7,7 +7,7 @@
   "license": "MIT",
   "dependencies": {
     "discord.js": "^12.5.3",
-    "flex-parse": "../flex-parse"
+    "flex-parse": "./src/flex-parse"
   },
   "scripts": {
     "start": "yarn tsc && node build/index.js"
