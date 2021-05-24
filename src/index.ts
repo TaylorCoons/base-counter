@@ -39,13 +39,13 @@ function formatContent(content: string): string | undefined {
 }
 
 let count = 0
-let parseError: Error | undefined
+let error: string
 
 client.on('message', message => {
   switch (parseCommand(message.content)) {
     case 'error':
-      if (parseError) {
-        message.reply(parseError.message)
+      if (error) {
+        message.reply(error)
       } else {
         message.reply('The last command did not have an error')
       }
@@ -57,14 +57,16 @@ client.on('message', message => {
       const value = parser.parse(lexer.lex(contentFormated))
       if (value === count + 1) {
         count++
+        error = 'The last command was correct!'
         message.react('✅')
       } else {
+        error = `The submission (${value}) did not match the expected count (${count+1})`
         count = 0
         message.react('😞')
         message.reply('Count ruined! Starting at 1')
       }
     } catch (e) {
-      parseError = e
+      error = e.message
     }
   }
 });
