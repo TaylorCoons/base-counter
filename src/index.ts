@@ -10,7 +10,6 @@ client.on('ready', () => {
 
 function parseCommand(content: string): string | undefined {
   const match = content.match(/^\!bc\s(.*$)/)
-  console.log(match)
   if (match) {
     return match[1]
   }
@@ -22,19 +21,13 @@ function formatContent(content: string): string | undefined {
   const syntax = operations.operations.map((operation) => {
     return operation.syntax
   }).join('|')
-  console.log('Syntax: ')
-  console.log(syntax)
   let matcher
   try {
     matcher = new RegExp(`^[0-9|${syntax}]+`)
   } catch (e) {
-    console.log(e)
-    console.log('I failed')
     return content
   }
-  console.log(contentStripped)
   const match = contentStripped.match(matcher)
-  console.log(match)
   return match?.[0]
 }
 
