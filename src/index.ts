@@ -1,5 +1,5 @@
-import Discord from 'discord.js'
-import { lexer, parser } from 'flex-parse'
+import Discord, { Message } from 'discord.js'
+import { lexer, parser, operations } from 'flex-parse'
 import { botToken } from '../config/config.json'
 
 const client = new Discord.Client();
@@ -17,6 +17,27 @@ function parseCommand(content: string): string | undefined {
   return undefined
 }
 
+function formatContent(content: string): string | undefined {
+  const contentStripped = lexer.stripWhite(content)
+  const syntax = operations.operations.map((operation) => {
+    return operation.syntax
+  }).join('|')
+  console.log('Syntax: ')
+  console.log(syntax)
+  let matcher
+  try {
+    matcher = new RegExp(`^[0-9|${syntax}]+`)
+  } catch (e) {
+    console.log(e)
+    console.log('I failed')
+    return content
+  }
+  console.log(contentStripped)
+  const match = contentStripped.match(matcher)
+  console.log(match)
+  return match?.[0]
+}
+
 let count = 0
 let parseError: Error | undefined
 
@@ -30,22 +51,21 @@ client.on('message', message => {
       }
       return
   }
-  try {
-    const contentFormated = lexer.stripWhite(message.content)
-    console.log(contentFormated)
-    const value = parser.parse(lexer.lex(contentFormated))
-    console.log(`Value: ${value}`)
-    if (value === count + 1) {
-      count++
-      message.react('✅')
-    } else {
-      count = 0
-      message.react('😞')
-      message.reply('Count ruined! Starting at 1')
+  const contentFormated = formatContent(message.content)
+  if (contentFormated) {
+    try {
+      const value = parser.parse(lexer.lex(contentFormated))
+      if (value === count + 1) {
+        count++
+        message.react('✅')
+      } else {
+        count = 0
+        message.react('😞')
+        message.reply('Count ruined! Starting at 1')
+      }
+    } catch (e) {
+      parseError = e
     }
-  } catch (e) {
-    parseError = e
-    console.log(e)
   }
 });
 
