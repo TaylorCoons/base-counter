@@ -1,5 +1,5 @@
 import Discord, { Message } from 'discord.js'
-import { lexer, parser, operations } from 'flex-parse'
+import { lexer, parser, operations, groupings } from 'flex-parse'
 import { botToken } from '../config/config.json'
 
 const development = process.env.NODE_ENV === 'development' ? true : false
@@ -20,9 +20,13 @@ function parseCommand(content: string): string | undefined {
 
 function formatContent(content: string): string | undefined {
   const contentStripped = lexer.stripWhite(content)
-  const syntax = operations.operations.map((operation) => {
+  const opSyntax = operations.operations.map((operation) => {
     return operation.syntax
   }).join('|')
+  const groupingSyntax = groupings.groupings.map((grouping) => {
+    return `${grouping.startSyntax}|${grouping.endSyntax}`
+  }).join('|')
+  const syntax = `${opSyntax}|${groupingSyntax}`
   let matcher
   try {
     matcher = new RegExp(`^[0-9|${syntax}]+`)
@@ -37,7 +41,7 @@ let count = 0
 let error: string | undefined = undefined
 let prevUser: string | undefined = undefined
 
-function countRuined(message: Discord.Message, reason: string) {
+function countRuined(message: Message, reason: string) {
   error = reason
   prevUser = undefined
   count = 0
@@ -45,14 +49,38 @@ function countRuined(message: Discord.Message, reason: string) {
   message.react('😞')
 }
 
+function handleWhy(message: Message) {
+  const description = error ?? 'The last command did not have an error'
+  const embed = new Discord.MessageEmbed()
+    .setTitle('Why?')
+    .setColor(0xFF0000)
+    .setDescription(description)
+  message.reply(embed)
+}
+
+function handleOperations(message: Message) {
+  const opCommands = operations.operations.map((operation) => {
+    return `${operation.name}: ${operation.syntax}\n`
+  }).join('')
+  const groupingCommands = groupings.groupings.map((grouping) => {
+    return `${grouping.startSyntax}${grouping.endSyntax}\n`
+  }).join('')
+  let description = `Operations: \n${opCommands}\n` 
+  description += `Groupings: \n${groupingCommands}\n`
+  const embed = new Discord.MessageEmbed()
+    .setTitle('Available Operations')
+    .setColor(0xFFFF00)
+    .setDescription(description)
+  message.reply(embed)
+}
+
 client.on('message', message => {
   switch (parseCommand(message.content)) {
     case 'why':
-      if (error) {
-        message.reply(error)
-      } else {
-        message.reply('The last command did not have an error')
-      }
+      handleWhy(message)
+      return
+    case 'operations':
+      handleOperations(message)
       return
   }
   const contentFormated = formatContent(message.content)
