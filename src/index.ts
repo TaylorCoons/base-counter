@@ -2,6 +2,8 @@ import Discord, { Message } from 'discord.js'
 import { lexer, parser, operations } from 'flex-parse'
 import { botToken } from '../config/config.json'
 
+const development = process.env.NODE_ENV === 'development' ? true : false
+
 const client = new Discord.Client();
 
 client.on('ready', () => {
@@ -60,6 +62,9 @@ client.on('message', message => {
       if (value === count + 1) {
         if (message.member) {
           const currUser = message.member.user.username
+          if (development) {
+            prevUser = undefined
+          }
           if (prevUser === currUser) {
             countRuined(message, 'The same user can\'t count twice in a row')
           } else {

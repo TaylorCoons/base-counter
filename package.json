@@ -12,6 +12,9 @@
   "scripts": {
     "build:prod": "yarn tsc",
     "start:prod": "node build/src/index.js",
+    "build:dev": "yarn tsc",
+    "start:dev": "NODE_ENV=development node build/src/index.js",
+    "dev": "yarn build:dev && yarn start:dev",
     "prod": "yarn build:prod && yarn start:prod"
   },
   "devDependencies": {
