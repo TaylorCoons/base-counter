@@ -32,11 +32,20 @@ function formatContent(content: string): string | undefined {
 }
 
 let count = 0
-let error: string
+let error: string | undefined = undefined
+let prevUser: string | undefined = undefined
+
+function countRuined(message: Discord.Message, reason: string) {
+  error = reason
+  prevUser = undefined
+  count = 0
+  message.reply('Count ruined! Starting at 1')
+  message.react('😞')
+}
 
 client.on('message', message => {
   switch (parseCommand(message.content)) {
-    case 'error':
+    case 'why':
       if (error) {
         message.reply(error)
       } else {
@@ -49,14 +58,19 @@ client.on('message', message => {
     try {
       const value = parser.parse(lexer.lex(contentFormated))
       if (value === count + 1) {
-        count++
-        error = 'The last command was correct!'
-        message.react('✅')
+        if (message.member) {
+          const currUser = message.member.user.username
+          if (prevUser === currUser) {
+            countRuined(message, 'The same user can\'t count twice in a row')
+          } else {
+            count++
+            error = 'The last command was correct!'
+            message.react('✅')
+            prevUser = currUser
+          }
+        }
       } else {
-        error = `The submission (${value}) did not match the expected count (${count+1})`
-        count = 0
-        message.react('😞')
-        message.reply('Count ruined! Starting at 1')
+        countRuined(message, `The submission (${value}) did not match the expected count (${count+1})`)
       }
     } catch (e) {
       error = e.message
